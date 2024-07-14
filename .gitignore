@@ -1,2 +1,6 @@
 .env
 .venv/
+pyrightconfig.json
+.gitignore
+poetry.lock
+__pycache__

@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 aiogram = "^3.10.0"
+apscheduler = "^3.10.4"
 
 
 [build-system]
