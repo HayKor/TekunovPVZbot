@@ -2,34 +2,33 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher, types
+from aiogram.enums import ParseMode, parse_mode
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from config import BOT_TOKEN, FATHER_CHAT_ID
+from config import config
 
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(
+    token=config.bot_token,
+)
 dp = Dispatcher()
 
 
-# @dp.message()
-# async def send_info(message: types.Message):
-#     await bot.send_message(
-#         chat_id=FATHER_CHAT_ID,
-#         text=message.text,
-#     )
-#
+async def send_attendance_poll(bot: Bot):
+    question_prefix = r"Отметьтесь в опросе о своем фактическом выезде на работу. (Если вы опаздываете, то отпишите ниже)"
+    common_message = r"""Коллеги, доброе утро\!
+Ниже **отметьтесь** в опросе о своем фактическом выезде на работу, выбрав пункт, на котором вы сегодня работаете\.
+Если вы вдруг опаздываете, то ниже под опросом напишите: 'Рокотова\. Опаздываю на 15 минут\.'
+Если за час до фактического открытия пункта вы не отпишитесь, то вам автоматически будет искаться замена\."""
 
-
-async def send_to_father(bot: Bot):
     await bot.send_message(
-        chat_id=FATHER_CHAT_ID,
-        text="test every 5 sec",
+        chat_id=config.father_chat_id,
+        text=common_message,
+        parse_mode=ParseMode.MARKDOWN_V2,
     )
 
-
-async def send_attendance_poll(bot: Bot):
     await bot.send_poll(
-        chat_id=FATHER_CHAT_ID,
-        question="What do you choose?",
+        chat_id=config.father_chat_id,
+        question=question_prefix,
         options=["A", "B", "C"],
         type="regular",
         is_anonymous=False,
@@ -37,8 +36,13 @@ async def send_attendance_poll(bot: Bot):
 
 
 def set_scheduled_jobs(scheduler: AsyncIOScheduler, bot: Bot, *args, **kwargs):
-    # scheduler.add_job(send_to_father, "interval", seconds=5, args=(bot,))
-    scheduler.add_job(send_attendance_poll, "interval", seconds=5, args=(bot,))
+    scheduler.add_job(
+        send_attendance_poll,
+        "cron",
+        hour=7,
+        minute=30,
+        args=(bot,),
+    )
 
 
 async def main():
@@ -49,11 +53,10 @@ async def main():
     set_scheduled_jobs(scheduler=sched, bot=bot)
 
     try:
-        sched.start()
+        sched.start()  # START BEFORE POLLING
         await dp.start_polling(bot)
 
     finally:
-        await dp.storage.close()
         await bot.session.close()
 
 

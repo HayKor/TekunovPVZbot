@@ -1,7 +1,14 @@
-from dotenv import load_dotenv
-import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-load_dotenv()
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-FATHER_CHAT_ID = os.environ.get("FATHER_CHAT_ID")
+class Config(BaseSettings):
+    model_config = SettingsConfigDict(
+        case_sensitive=False,
+        env_file=".env",
+    )
+    bot_token: str
+    father_chat_id: int
+    pvz_chat_id: int
+
+
+config = Config()
