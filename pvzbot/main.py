@@ -6,12 +6,8 @@ from aiogram.enums import ParseMode
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from commands import router as commands_router
 from config import config
-from database.database import create_all
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from database.database import create_all, create_user
+from database.engine import async_session, engine
 
 
 async def send_attendance_poll(bot: Bot) -> None:
@@ -63,11 +59,6 @@ async def main() -> None:
 
     sched = AsyncIOScheduler()
     set_scheduled_jobs(scheduler=sched, bot=bot)
-
-    engine = create_async_engine(
-        config.database_url,
-        echo=True,
-    )
 
     try:
         sched.start()
