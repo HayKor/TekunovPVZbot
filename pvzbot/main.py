@@ -4,7 +4,6 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
 from commands import router as commands_router
 from config import config
 
@@ -16,7 +15,7 @@ dp = Dispatcher()
 dp.include_router(commands_router)
 
 
-async def send_attendance_poll(bot: Bot):
+async def send_attendance_poll(bot: Bot) -> None:
     question_prefix = r"Отметьтесь в опросе о своем фактическом выезде на работу. (Если вы опаздываете, то отпишите ниже)"
     common_message = r"""Коллеги, доброе утро\!
 Ниже **отметьтесь** в опросе о своем фактическом выезде на работу, выбрав пункт, на котором вы сегодня работаете\.
@@ -42,7 +41,7 @@ async def send_attendance_poll(bot: Bot):
     )
 
 
-def set_scheduled_jobs(scheduler: AsyncIOScheduler, bot: Bot, *args, **kwargs):
+def set_scheduled_jobs(scheduler: AsyncIOScheduler, bot: Bot, *args, **kwargs) -> None:
     scheduler.add_job(
         send_attendance_poll,
         "cron",
@@ -52,7 +51,7 @@ def set_scheduled_jobs(scheduler: AsyncIOScheduler, bot: Bot, *args, **kwargs):
     )
 
 
-async def main():
+async def main() -> None:
     logging.basicConfig(
         level=logging.INFO,
     )

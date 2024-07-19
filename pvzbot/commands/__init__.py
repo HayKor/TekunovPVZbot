@@ -1,9 +1,10 @@
 __all__ = [
     "router",
 ]
-from admin_commands import router as admin_router
 from aiogram import Router
-from common_commands import router as common_router
+
+from .admin_commands import router as admin_router
+from .common_commands import router as common_router
 
 
 router = Router()
