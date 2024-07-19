@@ -10,7 +10,18 @@ python = "^3.10"
 aiogram = "^3.10.0"
 apscheduler = "^3.10.4"
 pydantic-settings = "^2.3.4"
+aiosqlite = "^0.20.0"
+sqlalchemy = "^2.0.31"
 
+[tool.isort]
+line_length = 80
+atomic = true
+include_trailing_comma = true
+use_parentheses = true
+profile = "black"
+lines_after_imports = 2
+combine_as_imports = true
+multi_line_output = 3
 
 [build-system]
 requires = ["poetry-core"]

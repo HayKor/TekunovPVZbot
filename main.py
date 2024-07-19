@@ -2,15 +2,18 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher, types
-from aiogram.enums import ParseMode, parse_mode
+from aiogram.enums import ParseMode
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from commands import router as commands_router
 from config import config
+
 
 bot = Bot(
     token=config.bot_token,
 )
 dp = Dispatcher()
+dp.include_router(commands_router)
 
 
 async def send_attendance_poll(bot: Bot):
@@ -29,8 +32,12 @@ async def send_attendance_poll(bot: Bot):
     await bot.send_poll(
         chat_id=config.father_chat_id,
         question=question_prefix,
-        options=["A", "B", "C"],
         type="regular",
+        options=[
+            "A",
+            "B",
+            "C",
+        ],
         is_anonymous=False,
     )
 
