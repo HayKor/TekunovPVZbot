@@ -6,13 +6,12 @@ from aiogram.enums import ParseMode
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from commands import router as commands_router
 from config import config
-
-
-bot = Bot(
-    token=config.bot_token,
+from database.database import create_all
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
 )
-dp = Dispatcher()
-dp.include_router(commands_router)
 
 
 async def send_attendance_poll(bot: Bot) -> None:
@@ -55,15 +54,31 @@ async def main() -> None:
     logging.basicConfig(
         level=logging.INFO,
     )
+
+    bot = Bot(
+        token=config.bot_token,
+    )
+    dp = Dispatcher()
+    dp.include_router(commands_router)
+
     sched = AsyncIOScheduler()
     set_scheduled_jobs(scheduler=sched, bot=bot)
 
+    engine = create_async_engine(
+        config.database_url,
+        echo=True,
+    )
+
     try:
-        sched.start()  # START BEFORE POLLING
+        sched.start()
+        await create_all(engine=engine)
+
+        # THIS GOES LAST
         await dp.start_polling(bot)
 
     finally:
         await bot.session.close()
+        await engine.dispose()
 
 
 if __name__ == "__main__":
