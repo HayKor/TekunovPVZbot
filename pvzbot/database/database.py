@@ -3,7 +3,7 @@ from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
-from .models import Base, Users
+from .models import Base, Points, Users
 
 
 async def create_all(engine: AsyncEngine) -> None:
@@ -82,3 +82,39 @@ async def get_admin_list(
         admin_list = await session.scalars(statement=stmt)
         admin_list = admin_list.all()
     return admin_list
+
+
+async def get_point(
+    async_session: async_sessionmaker[AsyncSession], address, type
+) -> Points | None:
+    async with async_session() as session:
+        stmt = select(Points).where(Points.address == address and Points.type == type)
+        point_obj = await session.scalars(statement=stmt)
+        point = point_obj.first()
+    return point
+
+
+async def get_points(
+    async_session: async_sessionmaker[AsyncSession],
+) -> Sequence[Points] | None:
+    async with async_session() as session:
+        stmt = select(Points).order_by(Points.address, Points.type)
+        points_obj = await session.scalars(statement=stmt)
+        points = points_obj.all()
+    return points
+
+
+async def create_point(
+    async_session: async_sessionmaker[AsyncSession], address, type
+) -> Points | None:
+    async with async_session() as session:
+        async with session.begin():
+            point = await get_point(async_session, address, type)
+            if not point:
+                session.add(
+                    Points(
+                        address=address,
+                        type=type,
+                    )
+                )
+            return point

@@ -1,50 +1,13 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher, types
-from aiogram.enums import ParseMode
+from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from commands import router as commands_router
 from config import config
-from database.database import create_all, create_user
-from database.engine import async_session, engine
-
-
-# TODO
-async def send_attendance_poll(bot: Bot) -> None:
-    question_prefix = r"Отметьтесь в опросе о своем фактическом выезде на работу. (Если вы опаздываете, то отпишите ниже)"
-    common_message = r"""Коллеги, доброе утро\!
-Ниже **отметьтесь** в опросе о своем фактическом выезде на работу, выбрав пункт, на котором вы сегодня работаете\.
-Если вы вдруг опаздываете, то ниже под опросом напишите: 'Рокотова\. Опаздываю на 15 минут\.'
-Если за час до фактического открытия пункта вы не отпишитесь, то вам автоматически будет искаться замена\."""
-
-    await bot.send_message(
-        chat_id=config.father_chat_id,
-        text=common_message,
-        parse_mode=ParseMode.MARKDOWN_V2,
-    )
-
-    await bot.send_poll(
-        chat_id=config.father_chat_id,
-        question=question_prefix,
-        type="regular",
-        options=[
-            "A",
-            "B",
-            "C",
-        ],
-        is_anonymous=False,
-    )
-
-
-def set_scheduled_jobs(scheduler: AsyncIOScheduler, bot: Bot, *args, **kwargs) -> None:
-    scheduler.add_job(
-        send_attendance_poll,
-        "cron",
-        hour=7,
-        minute=30,
-        args=(bot,),
-    )
+from database.database import create_all
+from database.engine import engine
+from scheduler import set_scheduled_jobs
 
 
 async def main() -> None:
@@ -59,7 +22,7 @@ async def main() -> None:
     dp.include_router(commands_router)
 
     sched = AsyncIOScheduler()
-    set_scheduled_jobs(scheduler=sched, bot=bot)
+    set_scheduled_jobs(bot=bot)
 
     try:
         sched.start()
