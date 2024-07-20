@@ -13,5 +13,6 @@ router = Router()
 # including routers
 router.include_router(admin_router)
 router.include_router(father_router)
+
 # It goes last as it is common
 router.include_router(common_router)

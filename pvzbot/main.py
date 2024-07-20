@@ -10,6 +10,7 @@ from database.database import create_all, create_user
 from database.engine import async_session, engine
 
 
+# TODO
 async def send_attendance_poll(bot: Bot) -> None:
     question_prefix = r"Отметьтесь в опросе о своем фактическом выезде на работу. (Если вы опаздываете, то отпишите ниже)"
     common_message = r"""Коллеги, доброе утро\!
