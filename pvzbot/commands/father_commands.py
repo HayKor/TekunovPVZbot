@@ -1,12 +1,12 @@
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from database.database import (
+from database.engine import async_session
+from database.user_crud import (
     get_user_by_nickname,
     make_user_admin,
     make_user_not_admin,
 )
-from database.engine import async_session
 from filters import IsFather
 from states.father_states import MakeNewAdminForm, RemoveAdminForm
 

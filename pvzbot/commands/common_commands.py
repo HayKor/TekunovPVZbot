@@ -1,7 +1,7 @@
 from aiogram import Router, types
 from aiogram.filters import Command
-from database.database import create_user
 from database.engine import async_session
+from database.user_crud import create_user
 
 
 router = Router(name=__name__)
