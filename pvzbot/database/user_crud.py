@@ -8,7 +8,7 @@ from .models import Users
 
 async def get_user_by_id(
     async_session: async_sessionmaker[AsyncSession],
-    user_id,
+    user_id: int,
 ) -> Users | None:
     async with async_session() as session:
         user = await session.get(Users, user_id)
@@ -17,7 +17,7 @@ async def get_user_by_id(
 
 async def get_user_by_nickname(
     async_session: async_sessionmaker[AsyncSession],
-    user_nickname,
+    user_nickname: str,
 ) -> Users | None:
     async with async_session() as session:
         stmt = select(Users).where(Users.nickname == user_nickname)
@@ -27,26 +27,31 @@ async def get_user_by_nickname(
 
 
 async def create_user(
-    async_session: async_sessionmaker[AsyncSession], id, nickname
+    async_session: async_sessionmaker[AsyncSession], id: int, nickname: str
 ) -> Users | None:
     async with async_session() as session:
-        async with session.begin():
-            user = await session.get(Users, id)
-            if not user:
-                session.add(
-                    Users(
-                        id=id,
-                        nickname=nickname,
-                        is_admin=False,
-                        is_father=False,
-                    )
-                )
+        check = await get_user_by_id(async_session, id)
+        if not check:
+            user = Users(id=id, nickname=nickname)
+            session.add(user)
+            await session.commit()
             return user
+
+
+async def get_admin_list(
+    async_session: async_sessionmaker[AsyncSession],
+) -> Sequence[Users] | None:
+    async with async_session() as session:
+        # stmt = select(Users).where(Users.is_admin == True)
+        stmt = select(Users).where(Users.is_admin)
+        admin_list = await session.scalars(statement=stmt)
+        admin_list = admin_list.all()
+    return admin_list
 
 
 async def make_user_admin(
     async_session: async_sessionmaker[AsyncSession],
-    user_id,
+    user_id: int,
 ) -> Users | None:
     async with async_session() as session:
         user = await session.get(Users, user_id)
@@ -58,21 +63,11 @@ async def make_user_admin(
 
 async def make_user_not_admin(
     async_session: async_sessionmaker[AsyncSession],
-    user_id,
+    user_id: int,
 ) -> Users | None:
     async with async_session() as session:
-        user = await session.get(Users, user_id)  # Get by PK
+        user = await session.get(Users, user_id)
         if user:
             user.is_admin = False
         await session.commit()
         return user
-
-
-async def get_admin_list(
-    async_session: async_sessionmaker[AsyncSession],
-) -> Sequence[Users] | None:
-    async with async_session() as session:
-        stmt = select(Users).where(Users.is_admin == True)
-        admin_list = await session.scalars(statement=stmt)
-        admin_list = admin_list.all()
-    return admin_list
