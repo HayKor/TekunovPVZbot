@@ -29,7 +29,7 @@ async def get_points(
 
 
 async def create_point(
-    async_session: async_sessionmaker[AsyncSession], address, type
+    async_session: async_sessionmaker[AsyncSession], address: str, type: str
 ) -> Points | None:
     async with async_session() as session:
         check = await get_point(async_session, address, type)
@@ -38,3 +38,14 @@ async def create_point(
             session.add(point)
             await session.commit()
             return point
+
+
+async def delete_point(
+    async_session: async_sessionmaker[AsyncSession], address: str, type: str
+) -> Points | None:
+    async with async_session() as session:
+        point = await get_point(async_session, address, type)
+        if point:
+            await session.delete(point)
+        await session.commit()
+        return point
