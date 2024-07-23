@@ -29,3 +29,8 @@ async def handle_start(message: types.Message):
 async def handle_cancel(message: types.Message, state: FSMContext) -> None:
     await message.reply(text="Предыдущее действие отменено успешно.")
     await state.clear()
+
+
+@router.message()
+async def handle_any(message: types.Message) -> None:
+    await message.reply(text="У вас нету прав в этом боте((((\nНапишите @haykorarthur")
