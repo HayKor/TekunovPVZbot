@@ -35,18 +35,18 @@ async def process_user_id(message: types.Message, state: FSMContext) -> None:
             await message.reply(
                 text=f"Юзер {message.text} успешно назначен администратором!"
             )
+        await state.clear()
     else:
         await message.reply(
             text="Такой юзер не найден! Пожалуйста, убедитесь, что Вы ввели никнейм без @"
         )
-    await state.clear()
 
 
 @router.message(Command("remove_admin"), IsFather())
 async def handle_remove_admin(message: types.Message, state: FSMContext) -> None:
     await state.set_state(RemoveAdminForm.admin_nicknaname)
     await message.reply(
-        text="Введите id администратора, кого вы хотите снять с должности."
+        text="Введите никнейм юзера без @, кого вы хотите снять с администрирования."
     )
 
 

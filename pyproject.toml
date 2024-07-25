@@ -12,6 +12,7 @@ apscheduler = "^3.10.4"
 pydantic-settings = "^2.3.4"
 aiosqlite = "^0.20.0"
 sqlalchemy = "^2.0.31"
+gspread = "^6.1.2"
 
 [tool.isort]
 line_length = 80

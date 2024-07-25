@@ -69,7 +69,7 @@ async def process_create_address_and_type(
             if point:
                 text += f'Пункт "<b>{point.address} {point.type}</b>" успешно создан!\n'
             else:
-                text += f"Что-то пошло не так..."
+                text += "Что-то пошло не так..."
     await message.reply(text=text, parse_mode=ParseMode.HTML)
     await state.clear()
 
@@ -102,6 +102,22 @@ async def process_delete_address_and_type(
             if point:
                 text += f'Пункт "<b>{point.address} {point.type}</b>" успешно удален!\n'
             else:
-                text += f"Что-то пошло не так..."
+                text += "Что-то пошло не так..."
     await message.reply(text=text, parse_mode=ParseMode.HTML)
     await state.clear()
+
+
+@router.message(Command("test"), IsAdmin())
+async def handle_test(message: types.Message) -> None:
+    points = await get_points(async_session)
+    points = [points[i : i + 9] for i in range(0, len(points), 9)]
+    for points_part in points:
+        question_options = [f"{point.address} {point.type}" for point in points_part]
+        question_options.append("Посмотреть результаты")
+        await message.bot.send_poll(
+            chat_id=message.chat.id,
+            question="Test",
+            options=question_options,
+            type="regular",
+            is_anonymous=False,
+        )

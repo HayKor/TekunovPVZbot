@@ -2,15 +2,14 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from commands import router as commands_router
 from config import config
 from database.database import create_all
 from database.engine import engine
-from scheduler import set_scheduled_jobs
+from scheduler import scheduler, set_scheduled_jobs
 
 
-async def main() -> None:
+async def main():
     logging.basicConfig(
         level=logging.INFO,
     )
@@ -21,11 +20,10 @@ async def main() -> None:
     dp = Dispatcher()
     dp.include_router(commands_router)
 
-    sched = AsyncIOScheduler()
     set_scheduled_jobs(bot=bot)
 
     try:
-        sched.start()
+        scheduler.start()
         await create_all(engine=engine)
 
         # THIS GOES LAST

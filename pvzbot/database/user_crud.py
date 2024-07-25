@@ -21,8 +21,8 @@ async def get_user_by_nickname(
 ) -> Users | None:
     async with async_session() as session:
         stmt = select(Users).where(Users.nickname == user_nickname)
-        user_list = await session.scalars(statement=stmt)
-        user = user_list.first()
+        user_list = await session.execute(statement=stmt)
+        user = user_list.scalar_one_or_none()
     return user
 
 

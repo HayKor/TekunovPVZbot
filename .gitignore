@@ -5,3 +5,4 @@ pyrightconfig.json
 poetry.lock
 __pycache__
 pvz.db
+.ruff_cache
