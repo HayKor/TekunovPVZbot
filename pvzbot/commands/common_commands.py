@@ -34,9 +34,4 @@ async def handle_cancel(message: types.Message, state: FSMContext) -> None:
 
 @router.message(Command("get_chat_id"))
 async def handle_get_chat_id(message: types.Message) -> None:
-    print(message.chat.id, "\n\n\n\n\n\n")
-
-
-# @router.message(~IsAdmin())
-# async def handle_any(message: types.Message) -> None:
-#     await message.reply(text="У вас нету прав в этом боте((((\nНапишите @HayKor")
+    await message.reply(str(message.chat.id))

@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./pvz.db:/app/pvz.db
+    environment:
+      - DATABASE_FILE=/app/pvz.db
+    env_file:
+      - .env

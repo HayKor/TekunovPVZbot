@@ -1,6 +1,7 @@
 from aiogram import Bot
 from aiogram.enums import ParseMode
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from config import config
 from database.engine import async_session
 from database.point_crud import get_points
 
@@ -17,7 +18,7 @@ async def send_attendance_poll(bot: Bot) -> None:
 
     # Sendin message before polls
     await bot.send_message(
-        chat_id=-1002245661910, text=common_message, parse_mode=ParseMode.HTML
+        chat_id=config.pvz_chat_id, text=common_message, parse_mode=ParseMode.HTML
     )
 
     points = await get_points(async_session)
@@ -26,7 +27,7 @@ async def send_attendance_poll(bot: Bot) -> None:
         question_options = [f"{point.address} {point.type}" for point in points_part]
         question_options.append("Посмотреть результаты")
         await bot.send_poll(
-            chat_id=-1002245661910,
+            chat_id=config.pvz_chat_id,
             question=question_prefix,
             options=question_options,
             type="regular",
@@ -42,10 +43,10 @@ def set_scheduled_jobs(bot: Bot) -> None:
     #     seconds=5,
     #     args=(bot,),
     # )
-    # scheduler.add_job(
-    #     send_attendance_poll,
-    #     "cron",
-    #     hour=7,
-    #     minute=30,
-    #     args=(bot,),
-    # )
+    scheduler.add_job(
+        send_attendance_poll,
+        "cron",
+        hour=20,
+        minute=45,
+        args=(bot,),
+    )
