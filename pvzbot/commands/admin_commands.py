@@ -23,7 +23,9 @@ async def handle_list_admins(message: types.Message) -> None:
     text = "<b>Список всех администраторов:</b>\n"
     if admin_list:
         for admin in admin_list:
-            text += f"<b>ID:</b> {admin.id}, <b>nickname:</b> @{admin.nickname};\n"
+            text += (
+                f"<b>ID:</b> {admin.id}, <b>nickname:</b> @{admin.nickname};\n"
+            )
         await message.reply(text=text, parse_mode=ParseMode.HTML)
     else:
         await message.reply(text="Нету(((", parse_mode=ParseMode.HTML)
@@ -42,7 +44,9 @@ async def handle_list_points(message: types.Message) -> None:
 
 
 @router.message(Command("create_point"), IsAdmin())
-async def handle_create_point(message: types.Message, state: FSMContext) -> None:
+async def handle_create_point(
+    message: types.Message, state: FSMContext
+) -> None:
     await state.set_state(MakeNewPoint.address_and_type)
     text = "Пожалуйста, введите адреса новых пунктов и службу через пробел.\n"
     text += "Каждый пункт должен быть с новой строчки.\n"
@@ -75,7 +79,9 @@ async def process_create_address_and_type(
 
 
 @router.message(Command("delete_point"), IsAdmin())
-async def handle_delete_point(message: types.Message, state: FSMContext) -> None:
+async def handle_delete_point(
+    message: types.Message, state: FSMContext
+) -> None:
     await state.set_state(DeletePoint.address_and_type)
     text = "Пожалуйста, введите адреса новых пунктов и службу через пробел.\n"
     text += "Каждый пункт должен быть с новой строчки.\n"
@@ -112,7 +118,9 @@ async def handle_test(message: types.Message) -> None:
     points = await get_points(async_session)
     points = [points[i : i + 9] for i in range(0, len(points), 9)]
     for points_part in points:
-        question_options = [f"{point.address} {point.type}" for point in points_part]
+        question_options = [
+            f"{point.address} {point.type}" for point in points_part
+        ]
         question_options.append("Посмотреть результаты")
         await message.bot.send_poll(
             chat_id=message.chat.id,

@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
+from callback import router as callback_router
 from commands import router as commands_router
 from config import config
 from database.database import create_all
@@ -19,6 +20,7 @@ async def main():
     )
     dp = Dispatcher()
     dp.include_router(commands_router)
+    dp.include_router(callback_router)
 
     set_scheduled_jobs(bot=bot)
 

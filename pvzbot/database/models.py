@@ -14,7 +14,9 @@ class Users(Base):
     )
     nickname: Mapped[str] = mapped_column("nickname", String(), nullable=False)
     is_admin: Mapped[bool] = mapped_column("is_admin", Boolean(), default=False)
-    is_father: Mapped[bool] = mapped_column("is_father", Boolean(), default=False)
+    is_father: Mapped[bool] = mapped_column(
+        "is_father", Boolean(), default=False
+    )
 
 
 class Points(Base):

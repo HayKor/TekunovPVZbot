@@ -12,7 +12,9 @@ async def get_point(
     type: str,
 ) -> Points | None:
     async with async_session() as session:
-        query = select(Points).where(Points.address == address, Points.type == type)
+        query = select(Points).where(
+            Points.address == address, Points.type == type
+        )
         point_obj = await session.execute(query)
         point = point_obj.scalar_one_or_none()
     return point

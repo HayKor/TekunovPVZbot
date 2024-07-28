@@ -17,7 +17,9 @@ router = Router(
 
 
 @router.message(Command("assign_admin"), IsFather())
-async def handle_assign_new_admin(message: types.Message, state: FSMContext) -> None:
+async def handle_assign_new_admin(
+    message: types.Message, state: FSMContext
+) -> None:
     await state.set_state(MakeNewAdminForm.user_nickname)
     await message.reply(
         text="Введите никнейм юзера без @, кого вы хотите назначить администратором."
@@ -43,7 +45,9 @@ async def process_user_id(message: types.Message, state: FSMContext) -> None:
 
 
 @router.message(Command("remove_admin"), IsFather())
-async def handle_remove_admin(message: types.Message, state: FSMContext) -> None:
+async def handle_remove_admin(
+    message: types.Message, state: FSMContext
+) -> None:
     await state.set_state(RemoveAdminForm.admin_nicknaname)
     await message.reply(
         text="Введите никнейм юзера без @, кого вы хотите снять с администрирования."
@@ -58,7 +62,9 @@ async def process_admin_id(message: types.Message, state: FSMContext) -> None:
             await message.reply(text=f"Юзер {message.text} не администратор!")
         if user.is_admin:
             await make_user_not_admin(async_session, user.id)
-            await message.reply(text=f"Админ {message.text} снят с администрирования!")
+            await message.reply(
+                text=f"Админ {message.text} снят с администрирования!"
+            )
     else:
         await message.reply(text=f"Юзер {message.text} не найден!..")
     await state.clear()

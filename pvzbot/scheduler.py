@@ -18,13 +18,17 @@ async def send_attendance_poll(bot: Bot) -> None:
 
     # Sendin message before polls
     await bot.send_message(
-        chat_id=config.pvz_chat_id, text=common_message, parse_mode=ParseMode.HTML
+        chat_id=config.pvz_chat_id,
+        text=common_message,
+        parse_mode=ParseMode.HTML,
     )
 
     points = await get_points(async_session)
     points = [points[i : i + 9] for i in range(0, len(points), 9)]
     for points_part in points:
-        question_options = [f"{point.address} {point.type}" for point in points_part]
+        question_options = [
+            f"{point.address} {point.type}" for point in points_part
+        ]
         question_options.append("Посмотреть результаты")
         await bot.send_poll(
             chat_id=config.pvz_chat_id,
@@ -36,17 +40,10 @@ async def send_attendance_poll(bot: Bot) -> None:
 
 
 def set_scheduled_jobs(bot: Bot) -> None:
-    pass
-    # scheduler.add_job(
-    #     send_attendance_poll,
-    #     "interval",
-    #     seconds=5,
-    #     args=(bot,),
-    # )
     scheduler.add_job(
         send_attendance_poll,
         "cron",
-        hour=20,
-        minute=45,
+        hour=7,
+        minute=15,
         args=(bot,),
     )
