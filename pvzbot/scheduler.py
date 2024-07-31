@@ -43,7 +43,7 @@ def set_scheduled_jobs(bot: Bot) -> None:
     scheduler.add_job(
         send_attendance_poll,
         "cron",
-        hour=7,
+        hour=4,
         minute=15,
         args=(bot,),
     )

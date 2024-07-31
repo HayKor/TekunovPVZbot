@@ -115,6 +115,15 @@ async def process_delete_address_and_type(
 
 @router.message(Command("test"), IsAdmin())
 async def handle_test(message: types.Message) -> None:
+    question_prefix = r"Отметьтесь в опросе о своем фактическом выезде на работу. (Если вы опаздываете, то отпишите ниже)"
+    common_message = r"""Коллеги, доброе утро!
+Ниже <b>отметьтесь</b> в опросе о своем фактическом выезде на работу, выбрав пункт, на котором вы сегодня работаете.
+Если вы вдруг опаздываете, то ниже под опросом напишите: 'Рокотова. Опаздываю на 15 минут.'
+Если за час до фактического открытия пункта вы не отпишитесь, то вам автоматически будет искаться <b>замена</b>."""
+    await message.reply(
+        text=common_message,
+        parse_mode=ParseMode.HTML,
+    )
     points = await get_points(async_session)
     points = [points[i : i + 9] for i in range(0, len(points), 9)]
     for points_part in points:
@@ -124,7 +133,7 @@ async def handle_test(message: types.Message) -> None:
         question_options.append("Посмотреть результаты")
         await message.bot.send_poll(
             chat_id=message.chat.id,
-            question="Test",
+            question=question_prefix,
             options=question_options,
             type="regular",
             is_anonymous=False,

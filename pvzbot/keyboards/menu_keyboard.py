@@ -24,18 +24,18 @@ def build_menu_kb() -> InlineKeyboardMarkup:
         text="🪛 Техническая проблема",
         callback_data=Callback.TECH,
     )
-
-    row1 = [info_btn, shifting_btn]
-    row2 = [trouble_btn]
-    row3 = [tech_btn]
-
-    rows = [
-        row1,
-        row2,
-        row3,
-    ]
-
-    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    money_btn = InlineKeyboardButton(
+        text="💰 Касса",
+        callback_data=Callback.MONEY,
+    )
+    markup = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [info_btn, shifting_btn],
+            [trouble_btn],
+            [money_btn],
+            [tech_btn],
+        ]
+    )
     return markup
 
 

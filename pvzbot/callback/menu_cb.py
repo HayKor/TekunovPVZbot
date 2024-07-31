@@ -49,7 +49,7 @@ async def handle_info_query(callback_query: types.CallbackQuery) -> None:
 async def handle_trouble_query(callback_query: types.CallbackQuery) -> None:
     markup = build_back_to_menu_kb()
     await callback_query.message.edit_text(
-        text="По всем вопросам претензионного характера обращаться к:\n<b>Марку Андреевичу</b> (@AbsoluteM1337)",
+        text="По всем вопросам претензионного характера обращаться к:\n<b>Марку Андреевичу</b> (@AbsoluteM1337)\nИ к Даниилу Кирилловичу (@Danthepretentious)",
         reply_markup=markup,
         parse_mode=ParseMode.HTML,
     )
@@ -59,7 +59,17 @@ async def handle_trouble_query(callback_query: types.CallbackQuery) -> None:
 async def handle_shift_query(callback_query: types.CallbackQuery) -> None:
     markup = build_back_to_menu_kb()
     await callback_query.message.edit_text(
-        text="""По всем вопросам графика обращаться к:\n<b>Михаилу Андреевичу</b> (@AbsoluteM1488) ПН-ПТ \nИ к <b>Михаилу Павловичу</b> (@Smetan4ik23)""",
+        text="""По всем вопросам графика обращаться к:\n<b>Михаилу Андреевичу</b> (@AbsoluteM1488) ПН-ПТ \n""",
+        reply_markup=markup,
+        parse_mode=ParseMode.HTML,
+    )
+
+
+@router.callback_query(F.data == Callback.MONEY)
+async def handle_money_query(callback_query: types.CallbackQuery) -> None:
+    markup = build_back_to_menu_kb()
+    await callback_query.message.edit_text(
+        text="""По всем вопросам касаемо денег и расходников обращаться к:\n<b>Дарье Дмитриевне</b> (@tarya17) ПН-ПТ 10:00-19:00""",
         reply_markup=markup,
         parse_mode=ParseMode.HTML,
     )
