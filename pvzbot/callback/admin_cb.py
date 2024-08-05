@@ -257,7 +257,7 @@ async def handle_remove_office_entity_number(
     )
     try:
         async with async_session() as session:
-            office = await session.delete(office_workers[int(data["number"])])
+            await session.delete(office_workers[int(data["number"])])
             await session.commit()
     except:
         await message.reply(text="Что-то пошло не так")

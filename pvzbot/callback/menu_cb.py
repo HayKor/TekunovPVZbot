@@ -4,6 +4,8 @@ from aiogram import F, Router, types
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
+from aiogram.types import InputMediaPhoto
+from aiogram.utils.media_group import MediaGroupBuilder
 from callback.enums import Callback, Office
 from config import config
 from database.engine import async_session
@@ -102,6 +104,7 @@ async def handle_money_query(callback_query: types.CallbackQuery) -> None:
 
 @router.callback_query(F.data == Callback.TECH)
 async def handle_tech_query(callback_query: types.CallbackQuery) -> None:
+    await callback_query.answer()
     markup = build_tech_kb()
     technician = await get_office_thing_by_occupation(
         async_session, occupation=Office.TECH
@@ -121,6 +124,7 @@ async def handle_tech_query(callback_query: types.CallbackQuery) -> None:
 async def handle_tech_form_query(
     callback_query: types.CallbackQuery, state: FSMContext
 ) -> None:
+    await callback_query.answer()
     await state.set_state(TechHelp.address)
     await callback_query.message.reply(
         text="Напишите полный адрес пункта:",
@@ -148,8 +152,9 @@ async def handle_tech_form_category(
     await state.update_data(category=message.text)
     await state.set_state(TechHelp.desc)
     await message.reply(
-        text="Опишите проблему:",
+        text="Опишите проблему.\nМожете прикрепить <b>ОДНО</b> фото:",
         reply_markup=build_cancel_kb(),
+        parse_mode=ParseMode.HTML,
     )
 
 
@@ -157,7 +162,22 @@ async def handle_tech_form_category(
 async def handle_tech_form_desc(
     message: types.Message, state: FSMContext
 ) -> None:
-    data = await state.update_data(desc=message.text)
+    photo = None
+
+    if message.photo:
+        photo = message.photo[-1].file_id
+
+    if message.text:
+        desc = message.text
+    elif message.caption:
+        desc = message.caption
+    else:
+        desc = "Без описания"
+
+    data = await state.update_data(
+        desc=desc,
+        photo=photo,
+    )
     text = "Спасибо! Ваша заявка принята в обработку.\nНапоминаем, что если проблема срочная, то обращаться к:\n"
     office_workers = await get_office_thing_by_occupation(
         async_session, occupation=Office.TECH
@@ -185,8 +205,13 @@ async def create_form(message: types.Message, data: dict[str, Any]) -> None:
     text += f"<b>Адрес:</b> {data['address']}\n"
     text += f"<b>Категория:</b> {data['category']}\n"
     text += f"<b>Описание:</b> {data['desc']}"
-    await message.bot.send_message(
+    # await message.bot.send_media_group(
+    #     chat_id=chat_id,
+    #     media=data["media_group"],
+    # )
+    await message.bot.send_photo(
         chat_id=chat_id,
-        text=text,
+        photo=data["photo"],
+        caption=text,
         parse_mode=ParseMode.HTML,
     )
