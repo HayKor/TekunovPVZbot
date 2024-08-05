@@ -2,6 +2,7 @@ from aiogram import F, Router, types
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
+from callback.enums import AdminCallback
 from database.engine import async_session
 from database.point_crud import (
     create_point,
@@ -11,6 +12,8 @@ from database.point_crud import (
 )
 from database.user_crud import get_admin_list
 from filters import IsAdmin
+from keyboards.admin_keyboard import build_back_to_points_menu_kb
+from keyboards.menu_keyboard import build_cancel_kb
 from states.admin_states import DeletePoint, MakeNewPoint
 
 
@@ -44,8 +47,9 @@ async def handle_list_points(message: types.Message) -> None:
 
 
 @router.message(Command("create_point"), IsAdmin())
+@router.callback_query(F.data == AdminCallback.POINTS_ADD)
 async def handle_create_point(
-    message: types.Message, state: FSMContext
+    message: types.Message | types.CallbackQuery, state: FSMContext
 ) -> None:
     await state.set_state(MakeNewPoint.address_and_type)
     text = "Пожалуйста, введите адреса новых пунктов и службу через пробел.\n"
@@ -53,7 +57,18 @@ async def handle_create_point(
     text += "Пожалуйста, пишите службу в таком формате: WB, OZON, ЯМ.\n"
     text += "Например, <code>Рокотова 5 OZON</code>."
     text += "Для отмены нажмите /cancel"
-    await message.reply(text=text, parse_mode=ParseMode.HTML)
+    if isinstance(message, types.Message):
+        await message.reply(
+            text=text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=build_cancel_kb(),
+        )
+    else:
+        await message.message.edit_text(
+            text=text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=build_back_to_points_menu_kb(),
+        )
 
 
 @router.message(MakeNewPoint.address_and_type, F.text)
@@ -74,13 +89,18 @@ async def process_create_address_and_type(
                 text += f'Пункт "<b>{point.address} {point.type}</b>" успешно создан!\n'
             else:
                 text += "Что-то пошло не так..."
-    await message.reply(text=text, parse_mode=ParseMode.HTML)
+    await message.reply(
+        text=text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=build_back_to_points_menu_kb(),
+    )
     await state.clear()
 
 
 @router.message(Command("delete_point"), IsAdmin())
+@router.callback_query(F.data == AdminCallback.POINTS_REMOVE)
 async def handle_delete_point(
-    message: types.Message, state: FSMContext
+    message: types.Message | types.CallbackQuery, state: FSMContext
 ) -> None:
     await state.set_state(DeletePoint.address_and_type)
     text = "Пожалуйста, введите адреса новых пунктов и службу через пробел.\n"
@@ -88,7 +108,18 @@ async def handle_delete_point(
     text += "Пожалуйста, пишите службу в таком формате: WB, OZON, ЯМ.\n"
     text += "Например, <code>Рокотова 5 OZON</code>."
     text += "Для отмены нажмите /cancel"
-    await message.reply(text=text, parse_mode=ParseMode.HTML)
+    if isinstance(message, types.Message):
+        await message.reply(
+            text=text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=build_back_to_points_menu_kb(),
+        )
+    else:
+        await message.message.edit_text(
+            text=text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=build_back_to_points_menu_kb(),
+        )
 
 
 @router.message(DeletePoint.address_and_type, F.text)
@@ -109,7 +140,11 @@ async def process_delete_address_and_type(
                 text += f'Пункт "<b>{point.address} {point.type}</b>" успешно удален!\n'
             else:
                 text += "Что-то пошло не так..."
-    await message.reply(text=text, parse_mode=ParseMode.HTML)
+    await message.reply(
+        text=text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=build_back_to_points_menu_kb(),
+    )
     await state.clear()
 
 

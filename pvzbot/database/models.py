@@ -24,3 +24,22 @@ class Points(Base):
     )
     address: Mapped[str] = mapped_column("address", String(), nullable=False)
     type: Mapped[str] = mapped_column("type", String(), nullable=False)
+
+
+class Office(Base):
+    __tablename__ = "office"
+    id: Mapped[int] = mapped_column(
+        "id", Integer(), primary_key=True, autoincrement=True
+    )
+    occupation: Mapped[str] = mapped_column(
+        "occupation", String(), nullable=False
+    )
+    name: Mapped[str] = mapped_column("name", String(), nullable=False)
+    tg_nickname: Mapped[str] = mapped_column(
+        "tg_nickname", String(), nullable=True
+    )
+    phone: Mapped[str] = mapped_column("phone", String(), nullable=True)
+    schedule: Mapped[str] = mapped_column("schedule", String(), nullable=True)
+    description: Mapped[str] = mapped_column(
+        "description", String(), nullable=True
+    )

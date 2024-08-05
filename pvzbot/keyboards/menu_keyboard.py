@@ -39,10 +39,10 @@ def build_menu_kb() -> InlineKeyboardMarkup:
     return markup
 
 
-def build_info_kb() -> InlineKeyboardMarkup:
+def build_info_kb(url: str) -> InlineKeyboardMarkup:
     info_btn = InlineKeyboardButton(
         text="🔗 Ссылка",
-        url="https://t.me/c/1564103951/4519",
+        url=url,
     )
     back_btn = InlineKeyboardButton(
         text="Назад",
@@ -92,6 +92,22 @@ def build_cancel_kb() -> ReplyKeyboardMarkup:
     cancel_btn = KeyboardButton(text="/cancel")
     markup = ReplyKeyboardMarkup(
         keyboard=[
+            [cancel_btn],
+        ],
+        resize_keyboard=True,
+    )
+    return markup
+
+
+def build_category_kb() -> ReplyKeyboardMarkup:
+    cancel_btn = KeyboardButton(text="/cancel")
+    internet_btn = KeyboardButton(text="Интернет")
+    terminal_btn = KeyboardButton(text="Терминал")
+    printer_btn = KeyboardButton(text="Принтер")
+    other_btn = KeyboardButton(text="Другое")
+    markup = ReplyKeyboardMarkup(
+        keyboard=[
+            [internet_btn, terminal_btn, printer_btn, other_btn],
             [cancel_btn],
         ],
         resize_keyboard=True,

@@ -4,11 +4,17 @@ from aiogram import F, Router, types
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from callback.enums import Callback
+from callback.enums import Callback, Office
 from config import config
+from database.engine import async_session
+from database.office_crud import (
+    get_office_thing,
+    get_office_thing_by_occupation,
+)
 from keyboards.menu_keyboard import (
     build_back_to_menu_kb,
     build_cancel_kb,
+    build_category_kb,
     build_info_kb,
     build_menu_kb,
     build_tech_kb,
@@ -38,7 +44,8 @@ async def handle_help(message: types.Message | types.CallbackQuery) -> None:
 
 @router.callback_query(F.data == Callback.INFO)
 async def handle_info_query(callback_query: types.CallbackQuery) -> None:
-    markup = build_info_kb()
+    url = await get_office_thing(async_session, name=Office.INFOLINK)
+    markup = build_info_kb(url=url.description)
     await callback_query.message.edit_text(
         text="Всю информацию  по структуре офиса можно найти в информационном рабочем чате",
         reply_markup=markup,
@@ -48,8 +55,14 @@ async def handle_info_query(callback_query: types.CallbackQuery) -> None:
 @router.callback_query(F.data == Callback.TROUBLE)
 async def handle_trouble_query(callback_query: types.CallbackQuery) -> None:
     markup = build_back_to_menu_kb()
+    text = "По всем вопросам претензионного характера обращаться к:\n"
+    office_workers = await get_office_thing_by_occupation(
+        async_session, occupation=Office.PRETENTIOUS
+    )
+    for worker in office_workers:
+        text += f"<b>{worker.name}</b> (@{worker.tg_nickname}) {worker.schedule if worker.schedule else ''}\n"
     await callback_query.message.edit_text(
-        text="По всем вопросам претензионного характера обращаться к:\n<b>Марку Андреевичу</b> (@AbsoluteM1337)\nИ к Даниилу Кирилловичу (@Danthepretentious)",
+        text=text,
         reply_markup=markup,
         parse_mode=ParseMode.HTML,
     )
@@ -58,8 +71,14 @@ async def handle_trouble_query(callback_query: types.CallbackQuery) -> None:
 @router.callback_query(F.data == Callback.SHIFT)
 async def handle_shift_query(callback_query: types.CallbackQuery) -> None:
     markup = build_back_to_menu_kb()
+    text = "По всем вопросам графика обращаться к:\n"
+    office_workers = await get_office_thing_by_occupation(
+        async_session, occupation=Office.SHIFT
+    )
+    for worker in office_workers:
+        text += f"<b>{worker.name}</b> (@{worker.tg_nickname}) {worker.schedule if worker.schedule else ''}\n"
     await callback_query.message.edit_text(
-        text="""По всем вопросам графика обращаться к:\n<b>Михаилу Андреевичу</b> (@AbsoluteM1488) ПН-ПТ \n""",
+        text=text,
         reply_markup=markup,
         parse_mode=ParseMode.HTML,
     )
@@ -68,8 +87,14 @@ async def handle_shift_query(callback_query: types.CallbackQuery) -> None:
 @router.callback_query(F.data == Callback.MONEY)
 async def handle_money_query(callback_query: types.CallbackQuery) -> None:
     markup = build_back_to_menu_kb()
+    text = "По всем вопросам касаемо денег и расходников обращаться к:\n"
+    office_workers = await get_office_thing_by_occupation(
+        async_session, occupation=Office.MONEY
+    )
+    for worker in office_workers:
+        text += f"<b>{worker.name}</b> (@{worker.tg_nickname}) {worker.schedule if worker.schedule else ''}\n"
     await callback_query.message.edit_text(
-        text="""По всем вопросам касаемо денег и расходников обращаться к:\n<b>Дарье Дмитриевне</b> (@tarya17) ПН-ПТ 10:00-19:00""",
+        text=text,
         reply_markup=markup,
         parse_mode=ParseMode.HTML,
     )
@@ -78,10 +103,14 @@ async def handle_money_query(callback_query: types.CallbackQuery) -> None:
 @router.callback_query(F.data == Callback.TECH)
 async def handle_tech_query(callback_query: types.CallbackQuery) -> None:
     markup = build_tech_kb()
+    technician = await get_office_thing_by_occupation(
+        async_session, occupation=Office.TECH
+    )
+    technician = technician[0]
     await callback_query.message.edit_text(
-        text="""Если проблема <b>срочная</b> (угрожает рабочему процессу), то стоит <b>как можно скорее</b> позвонить или сообщить техническому специалисту
-<b>Дмитрию Сергеевичу</b>:
-<code>89654781772</code> @BingoB0ngo
+        text=f"""Если проблема <b>срочная</b> (угрожает рабочему процессу), то стоит <b>как можно скорее</b> позвонить или сообщить техническому специалисту
+<b>{technician.name}</b>:
+<code>{technician.phone}</code> @{technician.tg_nickname}
 Также можете создать заявку и подробно описать проблему.""",
         reply_markup=markup,
         parse_mode=ParseMode.HTML,
@@ -107,8 +136,8 @@ async def handle_tech_form_address(
     await state.update_data(name=message.from_user.username)
     await state.set_state(TechHelp.category)
     await message.reply(
-        text="Напишите категорию проблемы:",
-        reply_markup=build_cancel_kb(),
+        text="Выберите категорию проблемы:",
+        reply_markup=build_category_kb(),
     )
 
 
@@ -129,10 +158,15 @@ async def handle_tech_form_desc(
     message: types.Message, state: FSMContext
 ) -> None:
     data = await state.update_data(desc=message.text)
+    text = "Спасибо! Ваша заявка принята в обработку.\nНапоминаем, что если проблема срочная, то обращаться к:\n"
+    office_workers = await get_office_thing_by_occupation(
+        async_session, occupation=Office.TECH
+    )
+    for worker in office_workers:
+        text += f"<b>{worker.name}</b> (@{worker.tg_nickname}) {worker.phone if worker.phone else ''}\n"
     await state.clear()
     await message.reply(
-        text="""Спасибо! Ваша заявка принята в обработку.\nНапоминаем, что если проблема срочная, то обращаться к:\n 
-<b>Дмитрию Сергеевичу</b> <code>89654781772</code> @BingoB0ngo""",
+        text=text,
         parse_mode=ParseMode.HTML,
         reply_markup=types.ReplyKeyboardRemove(),
     )
@@ -141,7 +175,12 @@ async def handle_tech_form_desc(
 
 async def create_form(message: types.Message, data: dict[str, Any]) -> None:
     chat_id = config.pvz_tech_chat_id
-    text = "Новая заявка! @BingoB0ngo\n"
+    technicians = await get_office_thing_by_occupation(
+        async_session, occupation=Office.TECH
+    )
+    text = "Новая заявка!\n"
+    for technician in technicians:
+        text += f"@{technician.tg_nickname}\n"
     text += f"<b>От:</b> @{data['name']}\n"
     text += f"<b>Адрес:</b> {data['address']}\n"
     text += f"<b>Категория:</b> {data['category']}\n"
