@@ -104,10 +104,12 @@ def build_category_kb() -> ReplyKeyboardMarkup:
     internet_btn = KeyboardButton(text="Интернет")
     terminal_btn = KeyboardButton(text="Терминал")
     printer_btn = KeyboardButton(text="Принтер")
+    scanner_btn = KeyboardButton(text="Сканер")
     other_btn = KeyboardButton(text="Другое")
     markup = ReplyKeyboardMarkup(
         keyboard=[
-            [internet_btn, terminal_btn, printer_btn, other_btn],
+            [internet_btn, terminal_btn, printer_btn, scanner_btn],
+            [other_btn],
             [cancel_btn],
         ],
         resize_keyboard=True,
