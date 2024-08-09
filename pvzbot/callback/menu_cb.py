@@ -1,10 +1,9 @@
-from typing import Any
+from typing import Any, List
 
 from aiogram import F, Router, types
-from aiogram.enums import ParseMode
-from aiogram.filters import Command
+from aiogram.enums import ParseMode, parse_mode
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InputMediaPhoto
 from aiogram.utils.media_group import MediaGroupBuilder
 from callback.enums import Callback, Office
 from config import config
@@ -21,10 +20,12 @@ from keyboards.menu_keyboard import (
     build_menu_kb,
     build_tech_kb,
 )
+from middlewares.media_group_middleware import GetMediaGroupMiddleware
 from states.common_states import TechHelp
 
 
 router = Router(name=__name__)
+router.message.middleware(GetMediaGroupMiddleware())
 
 
 @router.message(Command("help"))
@@ -152,18 +153,58 @@ async def handle_tech_form_category(
     await state.update_data(category=message.text)
     await state.set_state(TechHelp.desc)
     await message.reply(
-        text="Опишите проблему.\nМожете прикрепить <b>ОДНО</b> фото:",
+        text="Опишите проблему.\nМожете прикрепить <b>НЕСКОЛЬКО</b> фото:",
         reply_markup=build_cancel_kb(),
         parse_mode=ParseMode.HTML,
     )
 
 
+@router.message(
+    F.media_group_id != None,
+    TechHelp.desc,
+    flags={"get_media_group": True},
+)
+async def handle_media_group(
+    message: types.Message,
+    state: FSMContext,
+    album: List[types.Message],
+) -> None:
+    if message.text:
+        desc = message.text
+    elif message.caption:
+        desc = message.caption
+    else:
+        desc = "Без описания"
+
+    media_group = MediaGroupBuilder()
+    for photo in album:
+        media_group.add_photo(media=photo.photo[-1].file_id, type="photo")
+    data = await state.update_data(
+        media_group=media_group,
+        desc=desc,
+    )
+
+    text = "Спасибо! Ваша заявка принята в обработку.\nНапоминаем, что если проблема срочная, то обращаться к:\n"
+    office_workers = await get_office_thing_by_occupation(
+        async_session, occupation=Office.TECH
+    )
+    for worker in office_workers:
+        text += f"<b>{worker.name}</b> (@{worker.tg_nickname}) {worker.phone if worker.phone else ''}\n"
+    await state.clear()
+    await message.reply(
+        text=text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=types.ReplyKeyboardRemove(),
+    )
+    await create_form(message, data)
+
+
 @router.message(TechHelp.desc)
 async def handle_tech_form_desc(
-    message: types.Message, state: FSMContext
+    message: types.Message,
+    state: FSMContext,
 ) -> None:
     photo = None
-
     if message.photo:
         photo = message.photo[-1].file_id
 
@@ -198,6 +239,7 @@ async def create_form(message: types.Message, data: dict[str, Any]) -> None:
     technicians = await get_office_thing_by_occupation(
         async_session, occupation=Office.TECH
     )
+
     text = "Новая заявка!\n"
     for technician in technicians:
         text += f"@{technician.tg_nickname}\n"
@@ -205,13 +247,32 @@ async def create_form(message: types.Message, data: dict[str, Any]) -> None:
     text += f"<b>Адрес:</b> {data['address']}\n"
     text += f"<b>Категория:</b> {data['category']}\n"
     text += f"<b>Описание:</b> {data['desc']}"
-    # await message.bot.send_media_group(
-    #     chat_id=chat_id,
-    #     media=data["media_group"],
-    # )
-    await message.bot.send_photo(
-        chat_id=chat_id,
-        photo=data["photo"],
-        caption=text,
-        parse_mode=ParseMode.HTML,
-    )
+
+    if data.get("media_group"):
+        media_group = data["media_group"]
+        media_group.caption = text
+    else:
+        media_group = None
+    if data.get("photo"):
+        photo = data["photo"]
+    else:
+        photo = None
+
+    if media_group:
+        await message.bot.send_media_group(
+            chat_id=chat_id,
+            media=media_group.build(),
+        )
+    elif photo:
+        await message.bot.send_photo(
+            chat_id=chat_id,
+            photo=data["photo"],
+            caption=text,
+            parse_mode=ParseMode.HTML,
+        )
+    else:
+        await message.bot.send_message(
+            chat_id=chat_id,
+            text=text,
+            parse_mode=ParseMode.HTML,
+        )
