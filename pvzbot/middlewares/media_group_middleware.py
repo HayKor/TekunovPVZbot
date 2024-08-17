@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Awaitable, Callable, Dict, List, Union
+from typing import Any, Awaitable, Callable, Dict, List
 
 from aiogram import BaseMiddleware
 from aiogram.dispatcher.flags import get_flag

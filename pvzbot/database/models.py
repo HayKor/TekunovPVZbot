@@ -1,45 +1,63 @@
-from sqlalchemy import Boolean, Integer, String
+from datetime import date, datetime, timezone
+
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    func,
+)
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(AsyncAttrs, DeclarativeBase):
-    pass
+    id: Mapped[int] = mapped_column(
+        "id", Integer(), primary_key=True, autoincrement=True
+    )
 
 
 class Users(Base):
     __tablename__ = "users"
-    id: Mapped[int] = mapped_column("id", Integer(), primary_key=True)
-    nickname: Mapped[str] = mapped_column("nickname", String(), nullable=False)
-    is_admin: Mapped[bool] = mapped_column("is_admin", Boolean(), default=False)
-    is_father: Mapped[bool] = mapped_column(
-        "is_father", Boolean(), default=False
-    )
+    nickname: Mapped[str] = mapped_column("nickname", nullable=False)
+    is_admin: Mapped[bool] = mapped_column("is_admin", default=False)
+    is_father: Mapped[bool] = mapped_column("is_father", default=False)
 
 
 class Points(Base):
     __tablename__ = "points"
-    id: Mapped[int] = mapped_column(
-        "id", Integer(), primary_key=True, autoincrement=True
-    )
-    address: Mapped[str] = mapped_column("address", String(), nullable=False)
-    type: Mapped[str] = mapped_column("type", String(), nullable=False)
+    address: Mapped[str] = mapped_column("address", nullable=False)
+    type: Mapped[str] = mapped_column("type", nullable=False)
 
 
 class Office(Base):
     __tablename__ = "office"
-    id: Mapped[int] = mapped_column(
-        "id", Integer(), primary_key=True, autoincrement=True
+    occupation: Mapped[str] = mapped_column("occupation", nullable=False)
+    name: Mapped[str] = mapped_column("name", nullable=False)
+    tg_nickname: Mapped[str] = mapped_column("tg_nickname", nullable=True)
+    phone: Mapped[str] = mapped_column("phone", nullable=True)
+    schedule: Mapped[str] = mapped_column("schedule", nullable=True)
+    description: Mapped[str] = mapped_column("description", nullable=True)
+
+
+class Polls(Base):
+    __tablename__ = "polls"
+    # date: Mapped[date] = mapped_column(
+    # "date", DateTime(timezone=True), default=datetime.now(timezone.utc)
+    # )
+    date: Mapped[date] = mapped_column(
+        "date", Date(), default=func.current_date()
     )
-    occupation: Mapped[str] = mapped_column(
-        "occupation", String(), nullable=False
+    poll_answers: Mapped[list["PollAnswers"]] = relationship(
+        "PollAnswers", back_populates="polls"
     )
-    name: Mapped[str] = mapped_column("name", String(), nullable=False)
-    tg_nickname: Mapped[str] = mapped_column(
-        "tg_nickname", String(), nullable=True
-    )
-    phone: Mapped[str] = mapped_column("phone", String(), nullable=True)
-    schedule: Mapped[str] = mapped_column("schedule", String(), nullable=True)
-    description: Mapped[str] = mapped_column(
-        "description", String(), nullable=True
-    )
+
+
+class PollAnswers(Base):
+    __tablename__ = "poll_answers"
+    poll_id: Mapped[int] = mapped_column("poll_id", ForeignKey("polls.id"))
+    question: Mapped[str] = mapped_column("question", nullable=False)
+    is_answered: Mapped[bool] = mapped_column("is_answered", default=False)
+    poll: Mapped["Polls"] = relationship("Poll", back_populates="poll_answers")
