@@ -7,10 +7,11 @@ class Config(BaseSettings):
         env_file=".env",
     )
     bot_token: str
+    database_url: str
     father_chat_id: int
     pvz_chat_id: int
     pvz_tech_chat_id: int
-    database_url: str
+    pvz_attendance_chat_id: int
 
 
 config = Config()
