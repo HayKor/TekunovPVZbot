@@ -1,11 +1,7 @@
-from typing import TYPE_CHECKING
-
+from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from utils.attendance import schedule_show_attendance_info, send_attendance_poll
 
-
-if TYPE_CHECKING:
-    from aiogram import Bot
 
 scheduler = AsyncIOScheduler()
 

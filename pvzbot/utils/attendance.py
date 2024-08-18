@@ -1,17 +1,12 @@
-from typing import TYPE_CHECKING
+from typing import List
 
+from aiogram import Bot
 from aiogram.enums import ParseMode
 from config import config
 from database.engine import async_session
 from database.point_crud import get_points
 from database.polls_crud import create_poll, create_poll_answer
 from database.revision_crud import create_revision, get_latest_revision
-
-
-if TYPE_CHECKING:
-    from typing import List
-
-    from aiogram import Bot
 
 
 async def schedule_show_attendance_info(bot: Bot):
