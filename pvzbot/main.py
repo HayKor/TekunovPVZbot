@@ -7,6 +7,7 @@ from commands import router as commands_router
 from config import config
 from database.database import create_all
 from database.engine import engine
+from handlers import router as handlers_router
 from scheduler import scheduler, set_scheduled_jobs
 
 
@@ -21,6 +22,7 @@ async def main():
     dp = Dispatcher()
     dp.include_router(commands_router)
     dp.include_router(callback_router)
+    dp.include_router(handlers_router)
 
     set_scheduled_jobs(bot=bot)
 
