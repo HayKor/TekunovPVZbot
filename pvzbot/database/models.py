@@ -1,14 +1,6 @@
-from datetime import date, datetime, timezone
+from datetime import date as dat
 
-from sqlalchemy import (
-    Boolean,
-    Date,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    func,
-)
+from sqlalchemy import Date, ForeignKey, Integer, func
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -42,16 +34,28 @@ class Office(Base):
     description: Mapped[str] = mapped_column("description", nullable=True)
 
 
-class Polls(Base):
-    __tablename__ = "polls"
-    # date: Mapped[date] = mapped_column(
-    # "date", DateTime(timezone=True), default=datetime.now(timezone.utc)
-    # )
-    date: Mapped[date] = mapped_column(
+class Revisions(Base):
+    __tablename__ = "revisions"
+    date: Mapped[dat] = mapped_column(
         "date", Date(), default=func.current_date()
     )
+
+    polls: Mapped[list["Polls"]] = relationship(
+        "Polls", back_populates="revision", lazy="selectin"
+    )
+
+
+class Polls(Base):
+    __tablename__ = "polls"
+    revision_id: Mapped[int] = mapped_column(
+        "revision_id", ForeignKey("revisions.id"), default=-1
+    )
+
     poll_answers: Mapped[list["PollAnswers"]] = relationship(
-        "PollAnswers", back_populates="polls"
+        "PollAnswers", back_populates="poll", lazy="selectin"
+    )
+    revision: Mapped["Revisions"] = relationship(
+        "Revisions", back_populates="polls", lazy="selectin"
     )
 
 
@@ -59,5 +63,9 @@ class PollAnswers(Base):
     __tablename__ = "poll_answers"
     poll_id: Mapped[int] = mapped_column("poll_id", ForeignKey("polls.id"))
     question: Mapped[str] = mapped_column("question", nullable=False)
+    option_id: Mapped[int] = mapped_column("option_id", nullable=False)
     is_answered: Mapped[bool] = mapped_column("is_answered", default=False)
-    poll: Mapped["Polls"] = relationship("Poll", back_populates="poll_answers")
+
+    poll: Mapped["Polls"] = relationship(
+        "Polls", back_populates="poll_answers", lazy="selectin"
+    )
