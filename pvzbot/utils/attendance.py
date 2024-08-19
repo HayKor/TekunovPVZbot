@@ -5,7 +5,11 @@ from aiogram.enums import ParseMode
 from config import config
 from database.engine import async_session
 from database.point_crud import get_points
-from database.polls_crud import create_poll, create_poll_answer
+from database.polls_crud import (
+    create_poll,
+    create_poll_answer,
+    update_revision_id,
+)
 from database.revision_crud import create_revision, get_latest_revision
 
 
@@ -61,10 +65,11 @@ async def send_attendance_poll(bot: Bot) -> None:
             type="regular",
             is_anonymous=False,
         )
-        poll_id = poll.poll.id  # type: ignore
+        poll_id: int = poll.poll.id  # type: ignore
+
+        await create_poll(async_session, poll_id=poll_id)  # type: ignore
 
         # Создание записей в таблице poll_answers
-        await create_poll(async_session, poll_id=poll_id)  # type: ignore
         for idx, poll_answer in enumerate(question_options):
             await create_poll_answer(
                 async_session,
@@ -72,9 +77,9 @@ async def send_attendance_poll(bot: Bot) -> None:
                 question=poll_answer,
                 option_id=idx,
             )
-        polls_list.append(str(poll_id))
+        polls_list.append(poll_id)
 
     # Создание ревизии и приписание ее номера записям в polls
     revision = await create_revision(async_session)
     for poll in polls_list:
-        await update_revision_id(async_session, poll, revision.id)  # type: ignore
+        await update_revision_id(async_session, poll, revision.id)
