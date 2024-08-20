@@ -1,14 +1,12 @@
 from datetime import date as dat
 
-from sqlalchemy import Date, ForeignKey, Integer, func
+from sqlalchemy import Date, ForeignKey, func
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(AsyncAttrs, DeclarativeBase):
-    id: Mapped[int] = mapped_column(
-        Integer(), primary_key=True, autoincrement=True
-    )
+    id: Mapped[int] = mapped_column(primary_key=True)
 
 
 class Users(Base):
@@ -29,6 +27,7 @@ class Office(Base):
     occupation: Mapped[str]
     name: Mapped[str]
 
+    # Optional fields
     tg_nickname: Mapped[str | None]
     phone: Mapped[str | None]
     schedule: Mapped[str | None]
@@ -39,6 +38,7 @@ class Revisions(Base):
     __tablename__ = "revisions"
     date: Mapped[dat] = mapped_column(Date(), default=func.current_date())
 
+    # relationships
     polls: Mapped[list["Polls"]] = relationship(
         "Polls", back_populates="revision", lazy="selectin"
     )
@@ -50,6 +50,7 @@ class Polls(Base):
         ForeignKey("revisions.id"), default=-1
     )
 
+    # relationships
     poll_answers: Mapped[list["PollAnswers"]] = relationship(
         "PollAnswers", back_populates="poll", lazy="selectin"
     )
@@ -65,6 +66,7 @@ class PollAnswers(Base):
     option_id: Mapped[int]
     is_answered: Mapped[bool] = mapped_column(default=False)
 
+    # relationships
     poll: Mapped["Polls"] = relationship(
         "Polls", back_populates="poll_answers", lazy="selectin"
     )
