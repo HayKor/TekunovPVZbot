@@ -14,6 +14,7 @@ from scheduler import scheduler, set_scheduled_jobs
 async def main():
     logging.basicConfig(
         level=logging.INFO,
+        format="%(asctime)s   %(name)-25s %(levelname)-8s %(message)s",
     )
 
     bot = Bot(
