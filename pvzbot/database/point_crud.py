@@ -24,26 +24,36 @@ async def get_points(
     async_session: async_sessionmaker[AsyncSession],
 ) -> Sequence[Points] | None:
     async with async_session() as session:
-        stmt = select(Points).order_by(Points.address, Points.type)
+        stmt = select(Points).order_by(
+            Points.address,
+            Points.type,
+            Points.worktime,
+        )
         points_obj = await session.scalars(statement=stmt)
         points = points_obj.all()
     return points
 
 
 async def create_point(
-    async_session: async_sessionmaker[AsyncSession], address: str, type: str
+    async_session: async_sessionmaker[AsyncSession],
+    address: str,
+    type: str,
+    worktime: str,
 ) -> Points | None:
     async with async_session() as session:
         check = await get_point(async_session, address, type)
         if not check:
-            point = Points(address=address, type=type)
+            point = Points(address=address, type=type, worktime=worktime)
             session.add(point)
             await session.commit()
             return point
 
 
 async def delete_point(
-    async_session: async_sessionmaker[AsyncSession], address: str, type: str
+    async_session: async_sessionmaker[AsyncSession],
+    address: str,
+    type: str,
+    worktime: str,
 ) -> Points | None:
     async with async_session() as session:
         point = await get_point(async_session, address, type)

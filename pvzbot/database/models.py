@@ -20,6 +20,7 @@ class Points(Base):
     __tablename__ = "points"
     address: Mapped[str]
     type: Mapped[str]
+    worktime: Mapped[str]
 
 
 class Office(Base):

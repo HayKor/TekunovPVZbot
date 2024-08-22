@@ -65,7 +65,7 @@ async def handle_points_list_query(callback: types.CallbackQuery) -> None:
     markup = build_back_to_points_menu_kb()
     if points_list:
         for count, point in enumerate(points_list):
-            text += f"<b>{count + 1}.</b> <code>{point.address} {point.type}</code>\n"
+            text += f"<b>{count + 1}.</b> <code>{point.address} {point.type} {point.worktime}</code>\n"
         await callback.message.edit_text(
             text=text,
             parse_mode=ParseMode.HTML,

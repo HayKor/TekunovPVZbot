@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal
 
 from aiogram import Bot
 from aiogram.enums import ParseMode
@@ -13,7 +13,9 @@ from database.polls_crud import (
 from database.revision_crud import create_revision, get_latest_revision
 
 
-async def schedule_show_attendance_info(bot: Bot):
+async def schedule_show_attendance_info(
+    bot: Bot, worktime: Literal["10:00", "9:00"]
+):
     revision = await get_latest_revision(async_session)
     text = "Эти пункты не отметились в опросе:\n\n"
     if revision is None:
@@ -25,6 +27,7 @@ async def schedule_show_attendance_info(bot: Bot):
                 if (
                     poll_answer.is_answered == False
                     and poll_answer.question != "Посмотреть результаты"
+                    and poll_answer.question.split()[-1] == worktime
                 ):
                     text += f"{count}. {poll_answer.question} <b>не отметился в опросе</b>\n"
                     count += 1

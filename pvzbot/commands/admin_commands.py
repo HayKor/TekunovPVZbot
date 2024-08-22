@@ -52,7 +52,7 @@ async def handle_list_points(message: types.Message) -> None:
     text = "<b>Список всех пунктов:</b>\n"
     if points_list:
         for count, point in enumerate(points_list):
-            text += f"<b>{count + 1}.</b> <code>{point.address} {point.type}</code>\n"
+            text += f"<b>{count + 1}.</b> <code>{point.address} {point.type} {point.worktime}</code>\n"
         await message.reply(text=text, parse_mode=ParseMode.HTML)
     else:
         await message.reply(text="Нету(((", parse_mode=ParseMode.HTML)
@@ -64,10 +64,10 @@ async def handle_create_point(
     message: types.Message | types.CallbackQuery, state: FSMContext
 ) -> None:
     await state.set_state(MakeNewPoint.address_and_type)
-    text = "Пожалуйста, введите адреса новых пунктов и службу через пробел.\n"
+    text = "Пожалуйста, введите адреса новых пунктов, службу и начало работы через пробел.\n"
     text += "Каждый пункт должен быть с новой строчки.\n"
     text += "Пожалуйста, пишите службу в таком формате: WB, OZON, ЯМ.\n"
-    text += "Например, <code>Рокотова 5 OZON</code>."
+    text += "Например, <code>Рокотова 5 OZON 10:00</code>."
     text += "Для отмены нажмите /cancel"
     if isinstance(message, types.Message):
         await message.reply(
@@ -91,14 +91,18 @@ async def process_create_address_and_type(
     text = "Добавленные пункты:\n\n"
     for point in points:
         point_raw = point.split()
-        address, type = " ".join(point_raw[:-1]), point_raw[-1]
+        address, type, worktime = (
+            " ".join(point_raw[:-2]),
+            point_raw[-2],
+            point_raw[-1],
+        )
         check = await get_point(async_session, address, type)
         if check:
-            text += f'Пункт "<b>{check.address} {check.type}</b>" уже есть!\n'
+            text += f'Пункт "<b>{check.address} {check.type} {check.worktime}</b>" уже есть!\n'
         else:
-            point = await create_point(async_session, address, type)
+            point = await create_point(async_session, address, type, worktime)
             if point:
-                text += f'Пункт "<b>{point.address} {point.type}</b>" успешно создан!\n'
+                text += f'Пункт "<b>{point.address} {point.type} {point.worktime}</b>" успешно создан!\n'
             else:
                 text += "Что-то пошло не так..."
     await message.reply(
@@ -115,10 +119,10 @@ async def handle_delete_point(
     message: types.Message | types.CallbackQuery, state: FSMContext
 ) -> None:
     await state.set_state(DeletePoint.address_and_type)
-    text = "Пожалуйста, введите адреса новых пунктов и службу через пробел.\n"
+    text = "Пожалуйста, введите адреса новых пунктов, службу и начало работы через пробел.\n"
     text += "Каждый пункт должен быть с новой строчки.\n"
     text += "Пожалуйста, пишите службу в таком формате: WB, OZON, ЯМ.\n"
-    text += "Например, <code>Рокотова 5 OZON</code>."
+    text += "Например, <code>Рокотова 5 OZON 10:00</code>."
     text += "Для отмены нажмите /cancel"
     if isinstance(message, types.Message):
         await message.reply(
@@ -142,14 +146,18 @@ async def process_delete_address_and_type(
     text = "Удаленные пункты:\n\n"
     for point in points:
         point_raw = point.split()
-        address, type = " ".join(point_raw[:-1]), point_raw[-1]
+        address, type, worktime = (
+            " ".join(point_raw[:-2]),
+            point_raw[-2],
+            point_raw[-1],
+        )
         check = await get_point(async_session, address, type)
         if not check:
             text += f'Пункта "{point}" нет!\n'
         else:
-            point = await delete_point(async_session, address, type)
+            point = await delete_point(async_session, address, type, worktime)
             if point:
-                text += f'Пункт "<b>{point.address} {point.type}</b>" успешно удален!\n'
+                text += f'Пункт "<b>{point.address} {point.type} {point.worktime}</b>" успешно удален!\n'
             else:
                 text += "Что-то пошло не так..."
     await message.reply(
@@ -179,7 +187,8 @@ async def handle_test(message: types.Message) -> None:
 
     for points_part in points:
         question_options: List = [
-            f"{point.address} {point.type}" for point in points_part
+            f"{point.address} {point.type} {point.worktime}"
+            for point in points_part
         ]
         question_options.append("Посмотреть результаты")
         poll = await message.bot.send_poll(  # type: ignore
@@ -211,7 +220,7 @@ async def handle_test(message: types.Message) -> None:
 @router.message(Command("show_attendance_info"))
 async def handle_show_attendance_info(message: types.Message):
     revision = await get_latest_revision(async_session)
-    text = "Эти пункты не отметились в опросе:\n\n"
+    text = "Эти пункты не отметились в опросе:\n\n\n"
     if revision is None:
         text += "Something went wrong, пожалуйста будьте пациентами"
     else:
@@ -221,6 +230,19 @@ async def handle_show_attendance_info(message: types.Message):
                 if (
                     poll_answer.is_answered == False
                     and poll_answer.question != "Посмотреть результаты"
+                    and poll_answer.question.split()[-1] == "9:00"
+                ):
+                    text += f"{count}. {poll_answer.question} <b>не отметился в опросе</b>\n"
+                    count += 1
+
+        text += "\n\n"
+        count = 1
+        for poll in revision.polls:
+            for poll_answer in poll.poll_answers:
+                if (
+                    poll_answer.is_answered == False
+                    and poll_answer.question != "Посмотреть результаты"
+                    and poll_answer.question.split()[-1] == "10:00"
                 ):
                     text += f"{count}. {poll_answer.question} <b>не отметился в опросе</b>\n"
                     count += 1
