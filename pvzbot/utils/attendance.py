@@ -53,30 +53,31 @@ async def send_attendance_poll(bot: Bot) -> None:
 
     # Получить список опросов и разбить его на равные группы по 9 пунктов
     points = await get_points(async_session)
-    points = [points[i : i + 9] for i in range(0, len(points), 9)]  # type: ignore
+    points = [points[i : i + 9] for i in range(0, len(points), 9)]
     polls_list = []
 
     for points_part in points:
         question_options: List = [
-            f"{point.address} {point.type}" for point in points_part
+            f"{point.address} {point.type} {point.worktime}"
+            for point in points_part
         ]
         question_options.append("Посмотреть результаты")
-        poll = await bot.send_poll(  # type: ignore
+        poll = await bot.send_poll(
             chat_id=config.pvz_chat_id,
             question=question_prefix,
             options=question_options,
             type="regular",
             is_anonymous=False,
         )
-        poll_id: int = poll.poll.id  # type: ignore
+        poll_id: int = poll.poll.id
 
-        await create_poll(async_session, poll_id=poll_id)  # type: ignore
+        await create_poll(async_session, poll_id=poll_id)
 
         # Создание записей в таблице poll_answers
         for idx, poll_answer in enumerate(question_options):
             await create_poll_answer(
                 async_session,
-                poll_id=poll_id,  # type: ignore
+                poll_id=poll_id,
                 question=poll_answer,
                 option_id=idx,
             )
