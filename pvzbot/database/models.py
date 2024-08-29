@@ -11,7 +11,7 @@ class Base(AsyncAttrs, DeclarativeBase):
 
 class Users(Base):
     __tablename__ = "users"
-    nickname: Mapped[str]
+    nickname: Mapped[str | None]
     is_admin: Mapped[bool] = mapped_column(default=False)
     is_father: Mapped[bool] = mapped_column(default=False)
 
