@@ -6,6 +6,7 @@ class Config(BaseSettings):
         case_sensitive=False,
         env_file=".env",
     )
+    engine_echo: bool
     bot_token: str
     database_url: str
     father_chat_id: int
