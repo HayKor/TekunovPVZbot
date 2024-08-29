@@ -18,13 +18,13 @@ def set_scheduled_jobs(bot: Bot) -> None:
         schedule_show_attendance_info,
         "cron",
         hour=5,
-        minute=0,
+        minute=10,
         args=(bot, "9:00"),
     )
     scheduler.add_job(
         schedule_show_attendance_info,
         "cron",
         hour=6,
-        minute=0,
+        minute=10,
         args=(bot, "10:00"),
     )
