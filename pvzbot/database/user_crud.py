@@ -12,7 +12,7 @@ async def get_user_by_id(
 ) -> Users | None:
     async with async_session() as session:
         user = await session.get(Users, user_id)
-    return user
+        return user
 
 
 async def get_user_by_nickname(
@@ -27,7 +27,9 @@ async def get_user_by_nickname(
 
 
 async def create_user(
-    async_session: async_sessionmaker[AsyncSession], id: int, nickname: str
+    async_session: async_sessionmaker[AsyncSession],
+    id: int,
+    nickname: str | None,
 ) -> Users | None:
     async with async_session() as session:
         check = await get_user_by_id(async_session, id)
@@ -42,7 +44,6 @@ async def get_admin_list(
     async_session: async_sessionmaker[AsyncSession],
 ) -> Sequence[Users] | None:
     async with async_session() as session:
-        # stmt = select(Users).where(Users.is_admin == True)
         stmt = select(Users).where(Users.is_admin)
         admin_list = await session.scalars(statement=stmt)
         admin_list = admin_list.all()
