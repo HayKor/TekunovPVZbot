@@ -7,6 +7,7 @@ services:
       - "8000:8000"
     volumes:
       - ./pvz.db:/app/pvz.db
+      - ./credentials.json:/credentials.json
     environment:
       - DATABASE_FILE=/app/pvz.db
     env_file:

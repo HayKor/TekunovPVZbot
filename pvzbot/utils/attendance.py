@@ -11,12 +11,20 @@ from database.polls_crud import (
     update_revision_id,
 )
 from database.revision_crud import create_revision, get_latest_revision
+from utils.sheets.attendance import get_workers_dict
+from utils.sheets.client import gc as g_client
 
 
 async def schedule_show_attendance_info(
     bot: Bot, worktime: Literal["10:00", "9:00"]
 ):
     revision = await get_latest_revision(async_session)
+    points_workers_dict = get_workers_dict(
+        g_client=g_client,
+        date=str(revision.date),
+    )
+    not_attended_list = []
+
     text = "Эти пункты не отметились в опросе:\n\n"
     if revision is None:
         text += "Something went wrong, пожалуйста будьте пациентами"
@@ -31,10 +39,25 @@ async def schedule_show_attendance_info(
                 ):
                     text += f"{count}. {poll_answer.question} <b>не отметился в опросе</b>\n"
                     count += 1
+                    not_attended_list.append(
+                        " ".join(poll_answer.question.split()[:-1])
+                    )
 
     await bot.send_message(
         chat_id=config.pvz_attendance_chat_id,
         text=text,
+        parse_mode=ParseMode.HTML,
+    )
+
+    not_attended_text = ""
+    for point in not_attended_list:
+        not_attended_text += (
+            f"{points_workers_dict.get(point, 'No name')} - {point}\n"
+        )
+
+    await bot.send_message(
+        chat_id=config.pvz_attendance_chat_id,
+        text=not_attended_text,
         parse_mode=ParseMode.HTML,
     )
 

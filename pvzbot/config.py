@@ -7,6 +7,7 @@ class Config(BaseSettings):
         env_file=".env",
     )
     engine_echo: bool
+    google_key: str
     bot_token: str
     database_url: str
     father_chat_id: int
