@@ -19,10 +19,13 @@ async def schedule_show_attendance_info(
     bot: Bot, worktime: Literal["10:00", "9:00"]
 ):
     revision = await get_latest_revision(async_session)
-    points_workers_dict = get_workers_dict(
-        g_client=g_client,
-        date=str(revision.date),
-    )
+    try:
+        points_workers_dict = get_workers_dict(
+            g_client=g_client,
+            date=str(revision.date),
+        )
+    except:
+        points_workers_dict = {}
     not_attended_list = []
 
     text = "Эти пункты не отметились в опросе:\n\n"
